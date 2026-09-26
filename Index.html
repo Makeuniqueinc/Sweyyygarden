@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swetha's Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --midnight:#0b1026; --deep-green:#12261f; --pink:#e8a9c1; --lavender:#b8a4d9;
+  --gold:#e8c468; --white:#f6f3ec; --sky-top:#0a0e22; --sky-bottom:#241a3d;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%; overflow:hidden; background:var(--midnight);}
+:root{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+body{
+  font-family:'Jost',sans-serif; color:var(--white);
+  width:100vw; height:100vh; position:relative;
+}
+.scene{position:absolute; inset:0; width:100%; height:100%; overflow:hidden; transition:opacity 1.4s ease;}
+#sky{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,var(--sky-top) 0%, var(--sky-bottom) 55%, #2c2140 100%);
+  transition:background 3s ease;
+}
+#sky.dawn{background:linear-gradient(180deg,#1a1f3d 0%, #5a3d5c 45%, #d98a5f 75%, #f2c46b 100%);}
+.moon{
+  position:absolute; top:8%; right:12%; width:70px; height:70px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, #fffdf2, #e9dfae 60%, #cbbd85 100%);
+  box-shadow:0 0 40px 12px rgba(240,230,180,.35);
+  transition:opacity 2s ease;
+}
+.star{position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; animation:twinkle 3.5s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.15;} 50%{opacity:1;}}
+.firefly{
+  position:absolute; width:5px; height:5px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 8px 3px rgba(232,196,104,.8);
+  animation:float-fly 9s ease-in-out infinite;
+}
+@keyframes float-fly{
+  0%{transform:translate(0,0); opacity:.3;}
+  25%{transform:translate(20px,-30px); opacity:1;}
+  50%{transform:translate(-15px,-10px); opacity:.5;}
+  75%{transform:translate(25px,15px); opacity:1;}
+  100%{transform:translate(0,0); opacity:.3;}
+}
+.ground{position:absolute; top:auto; bottom:0; left:0; right:auto; width:100%; height:38%; background:linear-gradient(180deg, rgba(18,38,31,0) 0%, var(--deep-green) 35%); z-index:2;}
+.blade{position:absolute; bottom:0; width:2px; background:linear-gradient(180deg,#2c5240,#12261f); transform-origin:bottom center; animation:sway 4.5s ease-in-out infinite;}
+@keyframes sway{0%,100%{transform:rotate(-3deg);} 50%{transform:rotate(3deg);}}
+.particle{position:absolute; width:3px; height:3px; border-radius:50%; background:rgba(246,243,236,.5); animation:drift 14s linear infinite;}
+@keyframes drift{0%{transform:translateY(0) translateX(0); opacity:0;} 10%{opacity:.6;} 90%{opacity:.6;} 100%{transform:translateY(-120vh) translateX(30px); opacity:0;}}
+
+/* ---- Opening scene ---- */
+#opening{z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;}
+.grow-line{font-family:'Cormorant Garamond',serif; font-size:clamp(20px,4.4vw,34px); font-style:italic; font-weight:400; letter-spacing:.02em; min-height:1.4em; opacity:0;}
+.grow-line.show{opacity:1; transition:opacity 1.2s ease;}
+.cursor{display:inline-block; width:1px; background:var(--white); margin-left:2px; animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.day-title{margin-top:34px; letter-spacing:.35em; font-size:12px; color:var(--pink); opacity:.85;}
+.day-date{font-family:'Cormorant Garamond',serif; font-size:clamp(26px,5vw,40px); margin-top:10px; letter-spacing:.08em; color:var(--gold);}
+.countdown{display:flex; gap:clamp(8px,3vw,22px); margin-top:30px;}
+.countdown .unit{display:flex; flex-direction:column; align-items:center;}
+.countdown .num{font-size:clamp(22px,5vw,36px); font-weight:500; color:var(--white); font-variant-numeric:tabular-nums;}
+.countdown .lbl{font-size:10px; letter-spacing:.18em; color:var(--lavender); margin-top:4px;}
+.sub-line{font-family:'Cormorant Garamond',serif; font-style:italic; font-size:15px; margin-top:22px; color:var(--white); opacity:.75;}
+.enter-btn{
+  margin-top:44px; background:transparent; border:1px solid rgba(246,243,236,.4); color:var(--white);
+  padding:13px 30px; border-radius:30px; font-family:'Jost',sans-serif; font-size:14px; letter-spacing:.05em;
+  cursor:pointer; transition:all .4s ease;
+}
+.enter-btn:hover, .enter-btn:focus-visible{background:rgba(246,243,236,.12); border-color:var(--gold); transform:translateY(-2px);}
+
+/* ---- Garden scene ---- */
+#garden{z-index:5; opacity:0; pointer-events:none;}
+#garden.active{opacity:1; pointer-events:auto;}
+.garden-text{
+  position:absolute; top:32%; left:50%; transform:translateX(-50%); text-align:center; z-index:6; width:90%;
+}
+.garden-text .msg{font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(17px,3.2vw,24px); opacity:0; transition:opacity 1.2s ease;}
+.garden-text .msg.show{opacity:1;}
+.flower{position:absolute; bottom:0; transform-origin:bottom center;}
+.stem{width:2px; margin:0 auto; background:linear-gradient(180deg,#3c6b52,#1c3527);}
+.bud{
+  width:10px; height:14px; border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+  margin:0 auto; transform:scale(1); transition:transform 2.5s cubic-bezier(.34,1.4,.64,1), background 2.5s ease;
+}
+.petals{position:relative; width:0; height:0; margin:0 auto;}
+.petal{
+  position:absolute; width:11px; height:16px; border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+  left:-5.5px; top:-16px; transform-origin:bottom center; transform:rotate(var(--r)) scale(0); opacity:0;
+  transition:transform 1.8s cubic-bezier(.34,1.4,.64,1) var(--d), opacity 1.4s ease var(--d);
+}
+.flower.bloomed .petal{transform:rotate(var(--r)) scale(1); opacity:1;}
+.flower.bloomed .bud{transform:scale(.3); opacity:0;}
+.flower-center{position:absolute; width:6px; height:6px; border-radius:50%; left:-3px; top:-9px; background:var(--gold); opacity:0; transition:opacity 1.4s ease 1.2s; box-shadow:0 0 6px 2px rgba(232,196,104,.6);}
+.flower.bloomed .flower-center{opacity:1;}
+.leaf{position:absolute; width:10px; height:6px; border-radius:0 100% 0 100%; background:#274a37; opacity:.85;}
+
+/* ---- Final bloom overlay ---- */
+#finale{position:absolute; inset:0; z-index:15; display:flex; align-items:center; justify-content:center; text-align:center; opacity:0; pointer-events:none; transition:opacity 2s ease;}
+#finale.show{opacity:1; pointer-events:auto;}
+.ray{position:absolute; top:8%; left:50%; width:2px; height:60%; background:linear-gradient(180deg, rgba(232,196,104,.5), transparent); transform-origin:top center;}
+.finale-inner{position:relative; z-index:2;}
+.finale-name{font-family:'Cormorant Garamond',serif; font-size:clamp(30px,7vw,58px); color:var(--gold);}
+.finale-sub{font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(15px,3vw,20px); margin-top:16px; opacity:.9;}
+.petal-fall{position:absolute; width:9px; height:12px; border-radius:50% 50% 50% 50%/60% 60% 40% 40%; background:var(--pink); animation:fall linear infinite;}
+@keyframes fall{0%{transform:translateY(-10vh) rotate(0deg); opacity:0;} 10%{opacity:.9;} 100%{transform:translateY(110vh) rotate(340deg); opacity:.2;}}
+
+/* ---- Final permanent garden ---- */
+#finalGarden{z-index:5; opacity:0; pointer-events:none;}
+#finalGarden.active{opacity:1; pointer-events:auto;}
+.butterfly{position:absolute; width:10px; height:8px; background:var(--lavender); border-radius:50% 50% 0 0; opacity:.8; animation:flutter 6s ease-in-out infinite;}
+@keyframes flutter{0%,100%{transform:translate(0,0) rotate(0deg);} 50%{transform:translate(40px,-25px) rotate(15deg);}}
+
+/* ---- Music button ---- */
+#musicBtn{
+  position:fixed; bottom:20px; right:20px; z-index:50; width:44px; height:44px; border-radius:50%;
+  background:rgba(246,243,236,.1); border:1px solid rgba(246,243,236,.3); color:var(--white);
+  font-size:14px; cursor:pointer; backdrop-filter:blur(4px); transition:all .3s ease;
+  bottom:calc(20px + env(safe-area-inset-bottom,0px));
+}
+#musicBtn:hover{background:rgba(246,243,236,.2);}
+
+@media (max-width:480px){
+  .countdown{gap:10px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important; transition-duration:.3s !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="sky" class="scene"></div>
+<div class="ground scene" id="groundLayer"></div>
+
+<div id="opening" class="scene">
+  <p class="grow-line" id="line1">Something beautiful is growing<span class="cursor" id="cursor1"></span></p>
+  <p class="grow-line" id="line2">But it isn't ready to bloom yet.</p>
+  <div class="day-title">SWETHA'S DAY</div>
+  <div class="day-date">07 &bull; 10 &bull; 2026</div>
+  <div class="countdown" id="countdown">
+    <div class="unit"><div class="num" id="cd-d">00</div><div class="lbl">DAYS</div></div>
+    <div class="unit"><div class="num" id="cd-h">00</div><div class="lbl">HOURS</div></div>
+    <div class="unit"><div class="num" id="cd-m">00</div><div class="lbl">MINUTES</div></div>
+    <div class="unit"><div class="num" id="cd-s">00</div><div class="lbl">SECONDS</div></div>
+  </div>
+  <p class="sub-line">Until the garden blooms.</p>
+  <button class="enter-btn" id="enterBtn">&#127793; Enter the Garden</button>
+</div>
+
+<div id="garden" class="scene">
+  <div class="garden-text"><p class="msg" id="stageMsg"></p></div>
+  <div id="flowerField" style="position:absolute; inset:0;"></div>
+</div>
+
+<div id="finale" class="scene">
+  <div class="finale-inner">
+    <p class="finale-sub" id="finaleLine1" style="opacity:0;">Happy Birthday, Swetha &#10084;</p>
+    <p class="finale-name" id="finaleLine2" style="opacity:0;">Today, the garden finally blooms.</p>
+    <p class="finale-sub" id="finaleLine3" style="opacity:0; margin-top:10px;">Because some beautiful things are worth waiting for.</p>
+  </div>
+</div>
+
+<div id="finalGarden" class="scene">
+  <div style="position:absolute; inset:0;" id="finalFlowerField"></div>
+  <div class="garden-text" style="top:16%;">
+    <p class="msg show" style="font-size:clamp(24px,5vw,42px); color:var(--gold);">SWETHA</p>
+    <p class="msg show" style="font-size:14px; letter-spacing:.2em; opacity:.8; margin-top:8px;">07 &bull; 10 &bull; 2026</p>
+    <p class="msg show" style="margin-top:20px;">May your year bloom beautifully.</p>
+    <p class="msg show" style="margin-top:10px; font-size:clamp(20px,4vw,28px); color:var(--pink);">Happy Birthday &#127807;</p>
+  </div>
+</div>
+
+<button id="musicBtn" aria-label="Toggle music">&#9835;</button>
+
+<script>
+/* ---------- Editable text ---------- */
+const TEXT = {
+  line1: "Something beautiful is growing",
+  line2: "But it isn't ready to bloom yet.",
+  subline: "Until the garden blooms.",
+  stages: {
+    7: "Every beautiful thing takes a little time.",
+    6: "",
+    5: "",
+    4: "",
+    3: "Almost there…",
+    2: "",
+    1: "Tomorrow.",
+    0: ""
+  }
+};
+const TARGET = new Date("2026-10-07T00:00:00+05:30");
+
+/* ---------- Background: stars, fireflies, grass, particles ---------- */
+function build(){
+  const sky = document.getElementById('sky');
+  for(let i=0;i<70;i++){
+    const s=document.createElement('div'); s.className='star';
+    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*60+'%';
+    s.style.animationDelay=(Math.random()*4)+'s';
+    sky.appendChild(s);
+  }
+  const moon=document.createElement('div'); moon.className='moon'; moon.id='moon'; sky.appendChild(moon);
+
+  const ground=document.getElementById('groundLayer');
+  for(let i=0;i<40;i++){
+    const b=document.createElement('div'); b.className='blade';
+    b.style.left=Math.random()*100+'%';
+    b.style.height=(10+Math.random()*22)+'px';
+    b.style.animationDelay=(Math.random()*4)+'s';
+    ground.appendChild(b);
+  }
+  for(let i=0;i<14;i++){
+    const f=document.createElement('div'); f.className='firefly';
+    f.style.left=Math.random()*100+'%'; f.style.top=(40+Math.random()*45)+'%';
+    f.style.animationDelay=(Math.random()*9)+'s'; f.style.animationDuration=(7+Math.random()*5)+'s';
+    document.body.appendChild(f);
+  }
+  for(let i=0;i<24;i++){
+    const p=document.createElement('div'); p.className='particle';
+    p.style.left=Math.random()*100+'%'; p.style.animationDelay=(Math.random()*14)+'s';
+    document.body.appendChild(p);
+  }
+}
+build();
+
+/* ---------- Typing animation ---------- */
+function typeLine(el, text, speed, cb){
+  let i=0;
+  el.classList.add('show');
+  const iv=setInterval(()=>{
+    el.textContent = text.slice(0,i+1);
+    i++;
+    if(i>=text.length){ clearInterval(iv); if(cb) setTimeout(cb, 500); }
+  }, speed);
+}
+window.addEventListener('load', ()=>{
+  const l1=document.getElementById('line1');
+  typeLine(l1, TEXT.line1, 45, ()=>{
+    document.getElementById('cursor1').style.display='none';
+    const l2=document.getElementById('line2');
+    l2.textContent=''; typeLine(l2, TEXT.line2, 45);
+  });
+});
+
+/* ---------- Countdown ---------- */
+const palette=['#e8a9c1','#e8c468','#b8a4d9','#f6f3ec'];
+function daysRemaining(){
+  return Math.max(0, Math.ceil((TARGET - new Date())/86400000));
+}
+function updateCountdown(){
+  const now=new Date();
+  const diff=TARGET-now;
+  if(diff<=0){
+    document.getElementById('cd-d').textContent='00';
+    document.getElementById('cd-h').textContent='00';
+    document.getElementById('cd-m').textContent='00';
+    document.getElementById('cd-s').textContent='00';
+    return true;
+  }
+  const d=Math.floor(diff/86400000);
+  const h=Math.floor((diff%86400000)/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  const s=Math.floor((diff%60000)/1000);
+  document.getElementById('cd-d').textContent=String(d).padStart(2,'0');
+  document.getElementById('cd-h').textContent=String(h).padStart(2,'0');
+  document.getElementById('cd-m').textContent=String(m).padStart(2,'0');
+  document.getElementById('cd-s').textContent=String(s).padStart(2,'0');
+  return false;
+}
+let reachedZero = updateCountdown();
+setInterval(()=>{
+  const done = updateCountdown();
+  if(done && !reachedZero){ reachedZero=true; triggerFinale(); }
+}, 1000);
+
+/* ---------- Flower field generation ---------- */
+function makeFlower(container, x, bottom, size, color, delay){
+  const wrap=document.createElement('div');
+  wrap.className='flower';
+  wrap.style.left=x+'%'; wrap.style.bottom=bottom+'px';
+  const stemH = 30+size*1.2;
+  wrap.innerHTML = `
+    <div class="stem" style="height:${stemH}px"></div>
+    <div class="leaf" style="left:-6px; bottom:${stemH*0.4}px;"></div>
+    <div class="bud" style="background:${color};"></div>
+    <div class="petals"></div>
+    <div class="flower-center"></div>
+  `;
+  const petalHost = wrap.querySelector('.petals');
+  const n=6;
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');
+    p.className='petal';
+    p.style.setProperty('--r', (i*(360/n))+'deg');
+    p.style.setProperty('--d', (delay+i*0.06)+'s');
+    p.style.background=color;
+    petalHost.appendChild(p);
+  }
+  container.appendChild(wrap);
+  return wrap;
+}
+
+const FIELD_COUNT = 22;
+let flowers = [];
+function buildField(container){
+  const arr=[];
+  for(let i=0;i<FIELD_COUNT;i++){
+    const x = 4 + (i*(92/FIELD_COUNT)) + (Math.random()*4-2);
+    const bottom = Math.random()*40;
+    const size = 14+Math.random()*10;
+    const color = palette[i%palette.length];
+    const delay = Math.random()*0.6;
+    arr.push(makeFlower(container, x, bottom, size, color, delay));
+  }
+  return arr;
+}
+flowers = buildField(document.getElementById('flowerField'));
+
+function setStage(days){
+  // map days remaining to number of bloomed flowers
+  let bloomCount;
+  if(days>=7) bloomCount=0;
+  else if(days===6) bloomCount=2;
+  else if(days===5) bloomCount=5;
+  else if(days===4) bloomCount=9;
+  else if(days===3) bloomCount=13;
+  else if(days===2) bloomCount=17;
+  else if(days===1) bloomCount=20;
+  else bloomCount=FIELD_COUNT;
+
+  flowers.forEach((f,i)=>{
+    if(i<bloomCount) f.classList.add('bloomed'); else f.classList.remove('bloomed');
+  });
+
+  const msgEl=document.getElementById('stageMsg');
+  const msg = TEXT.stages[Math.min(days,7)] || '';
+  if(msg){
+    msgEl.textContent=msg; msgEl.classList.add('show');
+  } else {
+    msgEl.classList.remove('show');
+  }
+}
+
+/* ---------- Scene transition ---------- */
+document.getElementById('enterBtn').addEventListener('click', ()=>{
+  document.getElementById('opening').style.opacity='0';
+  document.getElementById('opening').style.pointerEvents='none';
+  document.getElementById('garden').classList.add('active');
+  setStage(daysRemaining());
+});
+
+/* ---------- Finale sequence ---------- */
+function spawnRays(host){
+  for(let i=0;i<10;i++){
+    const r=document.createElement('div'); r.className='ray';
+    r.style.left=(20+i*7)+'%';
+    r.style.transform=`rotate(${(i-5)*4}deg)`;
+    r.style.animationDelay=(i*0.15)+'s';
+    host.appendChild(r);
+  }
+}
+function spawnFallingPetals(host, count){
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div'); p.className='petal-fall';
+    p.style.left=Math.random()*100+'%';
+    p.style.background=palette[i%palette.length];
+    p.style.animationDuration=(6+Math.random()*6)+'s';
+    p.style.animationDelay=(Math.random()*6)+'s';
+    host.appendChild(p);
+  }
+}
+function triggerFinale(){
+  document.getElementById('sky').classList.add('dawn');
+  const moon=document.getElementById('moon');
+  if(moon) moon.style.opacity='0';
+  // bloom all remaining flowers in sequence
+  flowers.forEach((f,i)=>{
+    setTimeout(()=>f.classList.add('bloomed'), i*90);
+  });
+  const finale=document.getElementById('finale');
+  spawnRays(finale); spawnFallingPetals(finale, 20);
+  setTimeout(()=>{
+    finale.classList.add('show');
+    document.getElementById('garden').classList.remove('active');
+    ['finaleLine1','finaleLine2','finaleLine3'].forEach((id,i)=>{
+      setTimeout(()=>{ document.getElementById(id).style.transition='opacity 1.6s ease'; document.getElementById(id).style.opacity='1'; }, i*1400);
+    });
+  }, flowers.length*90 + 1200);
+
+  setTimeout(showFinalGarden, flowers.length*90 + 7500);
+}
+
+function showFinalGarden(){
+  document.getElementById('finale').classList.remove('show');
+  const fg=document.getElementById('finalGarden');
+  const field=document.getElementById('finalFlowerField');
+  const arr=buildField(field);
+  arr.forEach(f=>f.classList.add('bloomed'));
+  spawnFallingPetals(fg, 14);
+  for(let i=0;i<6;i++){
+    const b=document.createElement('div'); b.className='butterfly';
+    b.style.left=Math.random()*90+'%'; b.style.top=(30+Math.random()*30)+'%';
+    b.style.animationDelay=(Math.random()*4)+'s';
+    fg.appendChild(b);
+  }
+  fg.classList.add('active');
+}
+
+/* If already past target on load, skip straight to final bloomed garden */
+if(TARGET - new Date() <= 0){
+  document.getElementById('opening').style.display='none';
+  document.getElementById('sky').classList.add('dawn');
+  showFinalGarden();
+} else {
+  // seed stage message even before entering (for when user re-enters)
+}
+
+/* ---------- Ambient music (generative, no external files) ---------- */
+let audioCtx=null, playing=false, nodes=[];
+function startAmbient(){
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const master = audioCtx.createGain();
+  master.gain.value = 0.0001;
+  master.connect(audioCtx.destination);
+  master.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime+2);
+
+  const freqs=[196.00,246.94,293.66,392.00]; // dreamy chord
+  freqs.forEach((f,i)=>{
+    const osc=audioCtx.createOscillator();
+    osc.type='sine'; osc.frequency.value=f;
+    const g=audioCtx.createGain(); g.gain.value=0.5/(i+1);
+    const lfo=audioCtx.createOscillator(); lfo.frequency.value=0.08+i*0.02;
+    const lfoGain=audioCtx.createGain(); lfoGain.gain.value=0.15;
+    lfo.connect(lfoGain); lfoGain.connect(g.gain);
+    const filter=audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=1200;
+    osc.connect(filter); filter.connect(g); g.connect(master);
+    osc.start(); lfo.start();
+    nodes.push(osc,lfo);
+  });
+  nodes.push(master);
+}
+function stopAmbient(){
+  if(!audioCtx) return;
+  const master=nodes[nodes.length-1];
+  master.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime+1);
+  setTimeout(()=>{ audioCtx.close(); audioCtx=null; nodes=[]; }, 1100);
+}
+document.getElementById('musicBtn').addEventListener('click', function(){
+  if(!playing){ startAmbient(); this.innerHTML='&#10553;'; playing=true; }
+  else { stopAmbient(); this.innerHTML='&#9835;'; playing=false; }
+});
+</script>
+</body>
+</html>
